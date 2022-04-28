@@ -5,12 +5,10 @@ namespace App\Repository;
 use App\Entity\Department;
 use App\Repository\Exception\DepartmentNotFound;
 
-final class DepartmentRepository
+final class DepartmentRepository extends AbstractRepository
 {
     /** @var ?array $data */
     private $dataByCode;
-
-    private $lastModified;
 
     public function __construct(string $filePath)
     {
@@ -24,11 +22,7 @@ final class DepartmentRepository
                 'code' => $row[0]
             ];
         }
-        $lms = filemtime($filePath);
-        if (!$lms) {
-            throw new \RuntimeException('Could not read lastmod.');
-        }
-        $this->lastModified = \DateTimeImmutable::createFromFormat('U', $lms);
+        $this->setLastModified($filePath);
     }
 
 
@@ -63,14 +57,6 @@ final class DepartmentRepository
             $item = $department;
         });
 
-        return $dataByCode;
-    }
-
-    /**
-     * @return \DateTimeImmutable
-     */
-    public function getLastModified(): \DateTimeImmutable
-    {
-        return $this->lastModified;
+        return $this->alphabeticalSorting($dataByCode);
     }
 }

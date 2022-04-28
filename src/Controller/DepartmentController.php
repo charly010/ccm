@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\CityRepository;
 use App\Repository\DepartmentRepository;
 use App\Repository\Exception\DepartmentNotFound;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,7 @@ final class DepartmentController extends AbstractController
     public function __invoke(
         Request $request,
         DepartmentRepository $departmentRepository,
+        CityRepository $cityRepository,
         SluggerInterface $slugger,
         RouterInterface $router,
         TranslatorInterface $translator
@@ -47,8 +49,23 @@ final class DepartmentController extends AbstractController
             return $this->redirect($trueUrl, Response::HTTP_MOVED_PERMANENTLY);
         }
 
+        $response = new Response();
+        $response
+            ->setLastModified($cityRepository->getLastModified())
+            ->setPublic()
+            ->setMaxAge(0)
+        ;
+        $response->headers->addCacheControlDirective('no-cache');
+
+        if ($response->isNotModified($request)) {
+            return $response;
+        }
+
+        $cities = $cityRepository->fetchByDepartmentId($department->getId());
+
         $viewParameters = [
             'department' => $department,
+            'cities' => $cities,
             'description' => $translator->trans(
                 'department.description %deparmentLabel%',
                 ['%deparmentLabel%' => $department->getName()]
@@ -56,6 +73,6 @@ final class DepartmentController extends AbstractController
             'url' => $departmentUrl
         ];
 
-        return $this->render('department.html.twig', $viewParameters);
+        return $this->render('department.html.twig', $viewParameters, $response);
     }
 }

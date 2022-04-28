@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\City;
 
-final class CityRepository
+final class CityRepository extends AbstractRepository
 {
     private array $dataByDepartmentId = [];
 
@@ -22,6 +22,7 @@ final class CityRepository
                 'slug' => $row[2]
             ];
         }
+        $this->setLastModified($filePath);
     }
 
     public function fetchByDepartmentId(int $departmentId): array
@@ -37,7 +38,7 @@ final class CityRepository
             }
         }
 
-        return $cities;
+        return $this->alphabeticalSorting($cities);
     }
 
     public function getAll(): \Traversable

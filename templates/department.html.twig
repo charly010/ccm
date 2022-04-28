@@ -17,4 +17,7 @@ code : {{department.getCode()}}
 <br>
 url : {{ url }}
 <br>
+<hr>
+{% include 'include/cities.html.twig' with {'cities': cities, 'title': 'Villes du département'} %}
+
 {% endblock %}
